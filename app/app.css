@@ -13,55 +13,12 @@ body {
     color-scheme: dark;
   }
 }
-
-.primary-button{
-  @apply bg-blue-500 text-white px-4 py-2 rounded-md;
-}
-section{
-  @apply px-10 py-2
-}
-.text-gradient{
-  @apply bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text;
-}
-.text-gradient-2{
-  @apply bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text;
-}
-.text-gradient-3{
-  @apply bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text;
-}
-.text-gradient-4{
-  @apply bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text;
-}
-form{
-  @apply flex flex-col gap-4;
-}
 input{
-  @apply border border-gray-300 rounded-md p-2 text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
+  @apply text-black;
 }
-::placeholder{
-  @apply text-gray-500;
+textarea{
+  @apply text-black;
 }
-h1{
-  @apply text-5xl font-bold;
-}
-h2{
-  @apply text-4xl font-bold;
-}
-h3{
-  @apply text-3xl font-bold;
-}
-h4{
-  @apply text-2xl font-bold;
-}
-h5{
-  @apply text-xl font-bold;
-}
-h6{
-  @apply text-lg font-bold;
-}
-label{
-  @apply text-sm font-bold;
-}
-.container{
-  @apply px-10 py-2
+select{
+  @apply text-black;
 }

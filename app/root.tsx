@@ -41,8 +41,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { AppLayout } from "./components/Layout";
+
 export default function App() {
-  return <Outlet />;
+  return <AppLayout><Outlet /></AppLayout>;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
