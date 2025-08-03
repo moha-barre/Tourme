@@ -12,4 +12,20 @@ pnpm-lock.yaml.DS_Store
 # React Router
 /.react-router/
 /build/
+.env# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Package lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# System files
+.DS_Store
+
+/node_modules/
+
+# React Router
+/.react
