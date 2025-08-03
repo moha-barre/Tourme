@@ -1,4 +1,12 @@
-.DS_Store
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Package lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml.DS_Store
 /node_modules/
 
 # React Router
