@@ -5,6 +5,71 @@ import { Trophy, Users, Calendar, ArrowRight } from 'lucide-react'
 import { formatDate, getStatusColor } from '../lib/utils'
 import { testDatabaseConnection, checkTables } from '../lib/db-test'
 
+// Meta tags for the home page
+export const meta = () => [
+  { title: "Tourme - Host and Join Tournaments | Create Competitive Tournaments" },
+  { name: "description", content: "Create competitive tournaments, manage brackets, and crown champions. Whether it's 1v1 or team-based, Tourme has you covered. Free tournament management platform." },
+  { name: "robots", content: "index, follow" },
+  { name: "author", content: "Tourme" },
+  { name: "keywords", content: "tournament creation, bracket generator, competitive gaming, esports tournaments, sports tournaments, tournament management, free tournament platform" },
+  { name: "language", content: "en" },
+  { name: "google-site-verification", content: "WdnT6pwogkSSvv8-uE3E8YpEUcuiwg1I3CH-I9dC3qQ" },
+  
+  // Open Graph tags
+  { property: "og:title", content: "Tourme - Host and Join Tournaments | Create Competitive Tournaments" },
+  { property: "og:description", content: "Create competitive tournaments, manage brackets, and crown champions. Whether it's 1v1 or team-based, Tourme has you covered. Free tournament management platform." },
+  { property: "og:type", content: "website" },
+  { property: "og:site_name", content: "Tourme" },
+  { property: "og:locale", content: "en_US" },
+  { property: "og:url", content: "https://yourdomain.com" },
+  { property: "og:image", content: "https://yourdomain.com/images/tourme-og-image.jpg" },
+  { property: "og:image:width", content: "1200" },
+  { property: "og:image:height", content: "630" },
+  { property: "og:image:alt", content: "Tourme - Tournament Management Platform" },
+  
+  // Twitter Card tags
+  { name: "twitter:card", content: "summary_large_image" },
+  { name: "twitter:title", content: "Tourme - Host and Join Tournaments | Create Competitive Tournaments" },
+  { name: "twitter:description", content: "Create competitive tournaments, manage brackets, and crown champions. Whether it's 1v1 or team-based, Tourme has you covered." },
+  { name: "twitter:site", content: "@tourme" },
+  { name: "twitter:creator", content: "@tourme" },
+  { name: "twitter:image", content: "https://yourdomain.com/images/tourme-twitter-image.jpg" },
+  { name: "twitter:image:alt", content: "Tourme - Tournament Management Platform" },
+  
+  // Additional SEO tags
+  { name: "theme-color", content: "#2563eb" },
+  { name: "msapplication-TileColor", content: "#2563eb" },
+  { name: "apple-mobile-web-app-capable", content: "yes" },
+  { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+  { name: "apple-mobile-web-app-title", content: "Tourme" },
+  
+  // Canonical URL
+  { rel: "canonical", href: "https://yourdomain.com" },
+  
+  // Structured Data (JSON-LD)
+  { 
+    type: "application/ld+json",
+    content: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Tourme",
+      "description": "Create and manage tournaments with automatic bracket generation, participant management, and real-time updates.",
+      "url": "https://yourdomain.com",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Tourme"
+      }
+    })
+  }
+];
+
 export default function HomePage() {
   const { user } = useAuthStore()
   const { tournaments, loading, fetchTournaments } = useTournamentStore()

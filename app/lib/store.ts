@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: data.user.email || '',
               username: data.user.email?.split('@')[0] || 'User',
               created_at: data.user.created_at,
-              updated_at: data.user.updated_at,
+              updated_at: data.user.updated_at || new Date().toISOString(),
             }, 
             loading: false 
           })
@@ -110,7 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: data.user.email || '',
               username: username,
               created_at: data.user.created_at,
-              updated_at: data.user.updated_at,
+              updated_at: data.user.updated_at || new Date().toISOString(),
             }, 
             loading: false 
           })

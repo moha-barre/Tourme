@@ -114,7 +114,8 @@ export interface Database {
         Row: {
           id: string
           tournament_id: string
-          user_id: string
+          user_id?: string
+          display_name: string
           status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
           team_name?: string
           created_at: string
@@ -123,7 +124,8 @@ export interface Database {
         Insert: {
           id?: string
           tournament_id: string
-          user_id: string
+          user_id?: string
+          display_name: string
           status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
           team_name?: string
           created_at?: string
@@ -133,6 +135,7 @@ export interface Database {
           id?: string
           tournament_id?: string
           user_id?: string
+          display_name?: string
           status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
           team_name?: string
           created_at?: string

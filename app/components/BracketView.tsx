@@ -30,10 +30,10 @@ export function BracketView({ matches, participants, onMatchClick }: BracketView
       }))
   }, [matches])
 
-  const getParticipantName = (userId: string | null | undefined) => {
-    if (!userId) return 'TBD'
-    const participant = participants.find(p => p.user_id === userId)
-    return participant?.team_name || participant?.user_id || 'Unknown'
+  const getParticipantName = (participantId: string | null | undefined) => {
+    if (!participantId) return 'TBD'
+    const participant = participants.find(p => p.id === participantId)
+    return participant?.display_name || participant?.team_name || participant?.user_id || 'Unknown'
   }
 
   const getMatchStatusColor = (status: string) => {

@@ -3,6 +3,64 @@ import { Link } from 'react-router'
 import { useAuthStore, useTournamentStore } from '../../lib/store'
 import { formatDate, getStatusColor } from '../../lib/utils'
 
+// Meta tags for the tournaments page
+export const meta = () => [
+  { title: "Browse Tournaments | Tourme - Find and Join Competitive Tournaments" },
+  { name: "description", content: "Browse and join tournaments across all games and sports. Filter by status, game type, and search for tournaments that match your interests. Create your own tournament today." },
+  { name: "robots", content: "index, follow" },
+  { name: "author", content: "Tourme" },
+  { name: "keywords", content: "browse tournaments, join tournaments, competitive gaming, esports tournaments, sports tournaments, tournament search, find tournaments" },
+  { name: "language", content: "en" },
+  { name: "google-site-verification", content: "WdnT6pwogkSSvv8-uE3E8YpEUcuiwg1I3CH-I9dC3qQ" },
+  
+  // Open Graph tags
+  { property: "og:title", content: "Browse Tournaments | Tourme - Find and Join Competitive Tournaments" },
+  { property: "og:description", content: "Browse and join tournaments across all games and sports. Filter by status, game type, and search for tournaments that match your interests." },
+  { property: "og:type", content: "website" },
+  { property: "og:site_name", content: "Tourme" },
+  { property: "og:locale", content: "en_US" },
+  { property: "og:url", content: "https://yourdomain.com/tournaments" },
+  { property: "og:image", content: "https://yourdomain.com/images/tournaments-og-image.jpg" },
+  { property: "og:image:width", content: "1200" },
+  { property: "og:image:height", content: "630" },
+  { property: "og:image:alt", content: "Browse Tournaments on Tourme" },
+  
+  // Twitter Card tags
+  { name: "twitter:card", content: "summary_large_image" },
+  { name: "twitter:title", content: "Browse Tournaments | Tourme - Find and Join Competitive Tournaments" },
+  { name: "twitter:description", content: "Browse and join tournaments across all games and sports. Filter by status, game type, and search for tournaments that match your interests." },
+  { name: "twitter:site", content: "@tourme" },
+  { name: "twitter:creator", content: "@tourme" },
+  { name: "twitter:image", content: "https://yourdomain.com/images/tournaments-twitter-image.jpg" },
+  { name: "twitter:image:alt", content: "Browse Tournaments on Tourme" },
+  
+  // Additional SEO tags
+  { name: "theme-color", content: "#2563eb" },
+  { name: "msapplication-TileColor", content: "#2563eb" },
+  { name: "apple-mobile-web-app-capable", content: "yes" },
+  { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+  { name: "apple-mobile-web-app-title", content: "Tourme Tournaments" },
+  
+  // Canonical URL
+  { rel: "canonical", href: "https://yourdomain.com/tournaments" },
+  
+  // Structured Data (JSON-LD)
+  { 
+    type: "application/ld+json",
+    content: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Tournaments",
+      "description": "Browse and join tournaments across all games and sports",
+      "url": "https://yourdomain.com/tournaments",
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": []
+      }
+    })
+  }
+];
+
 export default function TournamentsPage() {
   const { user } = useAuthStore()
   const { tournaments, loading, fetchTournaments } = useTournamentStore()

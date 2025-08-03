@@ -150,7 +150,8 @@ export class BracketGenerator {
     sortedParticipants.forEach((participant, index) => {
       if (index < seededPositions.length) {
         const position = seededPositions[index]
-        positions[position] = participant.user_id
+        // Use participant ID instead of user_id since participants might not have user accounts
+        positions[position] = participant.id
       }
     })
     
@@ -170,6 +171,58 @@ export class BracketGenerator {
     const nextMatchNumber = Math.floor((matchNumber - 1) / 2) + 1
     
     return { nextRound, nextMatchNumber }
+  }
+
+  /**
+   * Advance a player to the next round after winning a match
+   */
+  static async advancePlayerToNextRound(
+    tournamentId: string,
+    winnerId: string,
+    currentRound: number,
+    currentMatchNumber: number,
+    supabase: any
+  ): Promise<void> {
+    const nextMatch = this.getNextMatch(currentRound, currentMatchNumber, 10) // Assume max 10 rounds
+    
+    if (!nextMatch) {
+      // This is the final match, tournament is complete
+      return
+    }
+
+    // Find the next match
+    const { data: nextMatchData, error: nextMatchError } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('tournament_id', tournamentId)
+      .eq('round', nextMatch.nextRound)
+      .eq('match_number', nextMatch.nextMatchNumber)
+      .single()
+
+    if (nextMatchError || !nextMatchData) {
+      console.error('Could not find next match:', nextMatchError)
+      return
+    }
+
+    // Determine which player slot to fill (player1 or player2)
+    const isFirstPlayer = (currentMatchNumber - 1) % 2 === 0
+    
+    const updateData: any = {}
+    if (isFirstPlayer) {
+      updateData.player1_id = winnerId
+    } else {
+      updateData.player2_id = winnerId
+    }
+
+    // Update the next match with the winner
+    const { error: updateError } = await supabase
+      .from('matches')
+      .update(updateData)
+      .eq('id', nextMatchData.id)
+
+    if (updateError) {
+      console.error('Error advancing player to next round:', updateError)
+    }
   }
   
   /**

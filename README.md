@@ -80,12 +80,14 @@ CREATE TABLE tournaments (
 CREATE TABLE participants (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  display_name TEXT NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected', 'withdrawn')),
   team_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(tournament_id, user_id)
+  UNIQUE(tournament_id, user_id),
+  UNIQUE(tournament_id, display_name)
 );
 
 -- Create matches table
@@ -94,9 +96,9 @@ CREATE TABLE matches (
   tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE NOT NULL,
   round INTEGER NOT NULL,
   match_number INTEGER NOT NULL,
-  player1_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-  player2_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-  winner_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  player1_id UUID REFERENCES participants(id) ON DELETE SET NULL,
+  player2_id UUID REFERENCES participants(id) ON DELETE SET NULL,
+  winner_id UUID REFERENCES participants(id) ON DELETE SET NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
   score1 INTEGER,
   score2 INTEGER,
