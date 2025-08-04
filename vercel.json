@@ -3,15 +3,10 @@
   "outputDirectory": "build/client",
   "installCommand": "npm install",
   "framework": "vite",
-  "functions": {
-    "build/server/index.js": {
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
-} 
+}
