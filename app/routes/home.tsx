@@ -87,98 +87,97 @@ export default function HomePage() {
   const featuredTournaments = tournaments.slice(0, 6)
 
   return (
-      <div className="max-w-7xl mx-auto">
-        {/* Hero Section */}
-        <div className="text-center py-12 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-            Host and Join
-            <span className="text-blue-600"> Tournaments</span>
-          </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Create competitive tournaments, manage brackets, and crown champions. 
-            Whether it's 1v1 or team-based, Tourme has you covered.
+  <div className="max-w-7xl mx-auto">
+    {/* Hero Section */}
+    <div className="text-center py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+        Turn Chaos Into <span className="text-blue-600">Championships</span>
+      </h1>
+      <p className="mt-4 max-w-md mx-auto text-base text-gray-600 sm:text-lg md:mt-5 md:text-xl md:max-w-2xl">
+        Tourme makes tournament hosting fast, fair, and fun. Whether you're organizing a school league or a weekend showdown, we’ve got your back.
+      </p>
+      <div className="mt-6 max-w-md mx-auto sm:flex sm:justify-center">
+        {user ? (
+          <div className="space-y-3 sm:space-y-0 sm:space-x-3 sm:flex">
+            <Link to="/tournaments/create" className="primary-btn">
+              Create Tournament
+            </Link>
+            <Link to="/tournaments" className="secondary-btn">
+              Browse Tournaments
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3 sm:space-y-0 sm:space-x-3 sm:flex">
+            <Link to="/auth/signup" className="primary-btn">
+              Get Started Free
+            </Link>
+            <Link to="/auth/signin" className="secondary-btn">
+              Sign In
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Benefits Section */}
+    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-3xl font-extrabold text-gray-900">Why Organizers Love Tourme</h2>
+        <p className="mt-4 text-lg text-gray-600">
+          We’re not just a tool. We’re a tournament assistant that saves you time, reduces mistakes, and keeps your players happy.
+        </p>
+      </div>
+    </div>
+
+    {/* Features Section */}
+    <div className="py-12 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="lg:text-center">
+          <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
+          <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            Everything you need for tournament management
           </p>
-          <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-            {user ? (
-              <div className="space-y-3 sm:space-y-0 sm:space-x-3 sm:flex">
-                <Link
-                  to="/tournaments/create"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                >
-                  Create Tournament
-                </Link>
-                <Link
-                  to="/tournaments"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
-                >
-                  Browse Tournaments
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3 sm:space-y-0 sm:space-x-3 sm:flex">
-                <Link
-                  to="/auth/signup"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                >
-                  Get Started
-                </Link>
-                <Link
-                  to="/auth/signin"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
-                >
-                  Sign In
-                </Link>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Features Section */}
-        <div className="py-12 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="lg:text-center">
-              <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
-              <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                Everything you need for tournament management
-              </p>
-            </div>
-
-            <div className="mt-10">
-              <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <Trophy className="h-6 w-6" />
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Tournament Creation</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Create tournaments with custom settings, participant limits, and bracket types.
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Participant Management</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Accept or reject participants, manage teams, and handle withdrawals.
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
-                    <Calendar className="h-6 w-6" />
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">Auto-Generated Brackets</p>
-                  <p className="mt-2 ml-16 text-base text-gray-500">
-                    Automatic bracket generation with proper seeding and real-time updates.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <FeatureCard icon={<Trophy />} title="Tournament Creation" description="Custom brackets, match settings, and team size options." />
+          <FeatureCard icon={<Users />} title="Participant Management" description="Approve, reject, or edit participants and teams." />
+          <FeatureCard icon={<Calendar />} title="Auto Bracket Generator" description="Smart seeding and real-time updates, no Excel needed." />
         </div>
+      </div>
+    </div>
 
+    {/* How It Works Section */}
+    <div className="bg-gray-100 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-3xl font-extrabold text-gray-900">How It Works</h2>
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+          <Step icon={<FilePlus />} title="Step 1" text="Create your tournament and choose your settings." />
+          <Step icon={<Users2 />} title="Step 2" text="Invite teams or players to join and manage entries." />
+          <Step icon={<LayoutGrid />} title="Step 3" text="Let Tourme auto-generate brackets and scores." />
+        </div>
+      </div>
+    </div>
+
+    {/* Testimonials / Social Proof */}
+    <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-2xl font-bold text-gray-800">What Organizers Are Saying</h2>
+        <p className="mt-4 italic text-gray-500">"Tourme saved me hours and made me look professional. My teams loved the experience!"</p>
+        <p className="mt-2 font-medium text-gray-700">— Yusuf, Community Coach</p>
+      </div>
+    </div>
+
+    {/* Final CTA Section */}
+    <div className="bg-blue-600 py-12 px-4 sm:px-6 lg:px-8 text-center text-white">
+      <h2 className="text-3xl font-bold">Ready to run your next tournament like a pro?</h2>
+      <p className="mt-3 text-lg">Start creating your bracket in under 60 seconds — no learning curve.</p>
+      <Link to={user ? "/tournaments/create" : "/auth/signup"} className="mt-6 inline-block bg-white text-blue-600 font-medium px-8 py-3 rounded-md hover:bg-gray-100">
+        {user ? "Create Now" : "Get Started Free"}
+      </Link>
+    </div>
+  </div>
+);
         {/* Featured Tournaments */}
         <div className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
