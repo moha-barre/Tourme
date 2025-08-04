@@ -46,8 +46,8 @@ export class BracketGenerator {
     const numRounds = Math.ceil(Math.log2(numParticipants))
     const totalSlots = Math.pow(2, numRounds)
     
-    // Create seeded bracket positions
-    const seededPositions = this.generateSeededPositions(totalSlots)
+    // Create proper seeded bracket positions
+    const seededPositions = this.generateProperSeededPositions(totalSlots)
     
     // Assign participants to positions (fill with byes if needed)
     const bracketPositions = this.assignParticipantsToPositions(
@@ -78,13 +78,14 @@ export class BracketGenerator {
         const match: BracketMatch = {
           tournament_id: tournamentId,
           round,
-          match_number: matchNumber++,
+          match_number: matchNumber,
           player1_id: player1 === 'BYE' ? undefined : player1,
           player2_id: player2 === 'BYE' ? undefined : player2,
           status: 'pending',
         }
         
         matches.push(match)
+        matchNumber++ // Only increment for actual matches
       }
     }
     
@@ -92,18 +93,15 @@ export class BracketGenerator {
   }
   
   /**
-   * Generate seeded positions for a bracket
-   * Uses standard tournament seeding (1 vs 16, 8 vs 9, etc.)
+   * Generate proper seeded positions for a bracket
+   * Uses standard tournament seeding (1 vs 16, 8 vs 9, 4 vs 13, etc.)
    */
-  private static generateSeededPositions(totalSlots: number): number[] {
+  private static generateProperSeededPositions(totalSlots: number): number[] {
     const positions: number[] = []
     
-    // First seed always goes to position 0
-    positions.push(0)
-    
-    // For each subsequent seed, place it in the opposite half
-    for (let seed = 1; seed < totalSlots; seed++) {
-      const position = this.findSeededPosition(seed, totalSlots)
+    // For each seed, calculate its position using proper tournament seeding
+    for (let seed = 0; seed < totalSlots; seed++) {
+      const position = this.calculateSeededPosition(seed, totalSlots)
       positions.push(position)
     }
     
@@ -111,24 +109,24 @@ export class BracketGenerator {
   }
   
   /**
-   * Find the correct position for a given seed in a bracket
+   * Calculate the correct position for a given seed using proper tournament seeding
    */
-  private static findSeededPosition(seed: number, totalSlots: number): number {
+  private static calculateSeededPosition(seed: number, totalSlots: number): number {
     if (seed === 0) return 0
+    if (seed === 1) return totalSlots - 1
     
-    // Calculate which half of the bracket this seed should be in
-    const halfSize = totalSlots / 2
-    const half = Math.floor((seed - 1) / halfSize)
-    const positionInHalf = (seed - 1) % halfSize
+    // For seeds 2 and above, use the standard tournament seeding pattern
+    let position = seed
+    let currentSlot = totalSlots
     
-    // Map to actual position
-    if (half === 0) {
-      // Top half
-      return positionInHalf * 2
-    } else {
-      // Bottom half
-      return positionInHalf * 2 + 1
+    while (currentSlot > 2) {
+      currentSlot = currentSlot / 2
+      if (position > currentSlot) {
+        position = currentSlot * 2 - position + 1
+      }
     }
+    
+    return position - 1
   }
   
   /**
@@ -150,7 +148,6 @@ export class BracketGenerator {
     sortedParticipants.forEach((participant, index) => {
       if (index < seededPositions.length) {
         const position = seededPositions[index]
-        // Use participant ID instead of user_id since participants might not have user accounts
         positions[position] = participant.id
       }
     })
@@ -229,6 +226,7 @@ export class BracketGenerator {
    * Check if a tournament is complete
    */
   static isTournamentComplete(matches: BracketMatch[]): boolean {
+    if (matches.length === 0) return false
     const finalMatches = matches.filter(m => m.round === Math.max(...matches.map(m => m.round)))
     return finalMatches.every(m => m.status === 'completed')
   }
@@ -237,6 +235,7 @@ export class BracketGenerator {
    * Get the winner of a tournament
    */
   static getTournamentWinner(matches: BracketMatch[]): string | null {
+    if (matches.length === 0) return null
     const finalMatches = matches.filter(m => m.round === Math.max(...matches.map(m => m.round)))
     const finalMatch = finalMatches[0]
     

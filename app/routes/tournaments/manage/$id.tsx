@@ -24,10 +24,49 @@ import {
   Trash2
 } from 'lucide-react'
 import type { Database } from '../../../lib/supabase'
+import type { BracketRound } from '../../../components/BracketView'
 
 type Tournament = Database['public']['Tables']['tournaments']['Row']
 type Participant = Database['public']['Tables']['participants']['Row']
 type Match = Database['public']['Tables']['matches']['Row']
+
+// Helper to convert matches and participants to BracketRound[]
+function convertMatchesToRounds(matches: Match[], participants: Participant[]): BracketRound[] {
+  if (!matches || matches.length === 0) return [];
+  // Group matches by round
+  const roundsMap = new Map<number, Match[]>();
+  matches.forEach((match) => {
+    if (!roundsMap.has(match.round)) roundsMap.set(match.round, []);
+    roundsMap.get(match.round)!.push(match);
+  });
+  // Sort rounds numerically
+  const sortedRounds = Array.from(roundsMap.entries()).sort((a, b) => a[0] - b[0]);
+  // Build BracketRound[]
+  return sortedRounds.map(([round, roundMatches], idx) => ({
+    title: `Round ${round}`,
+    seeds: roundMatches.map((match) => {
+      // Find participant info for both teams
+      const team1 = participants.find((p) => p.id === match.player1_id);
+      const team2 = participants.find((p) => p.id === match.player2_id);
+      return {
+        id: match.id,
+        teams: [
+          { id: team1?.id, name: team1?.display_name || team1?.team_name || 'TBD' },
+          { id: team2?.id, name: team2?.display_name || team2?.team_name || 'TBD' },
+        ],
+        winner:
+          match.status === 'completed'
+            ? match.winner_id === match.player1_id
+              ? 0
+              : match.winner_id === match.player2_id
+              ? 1
+              : null
+            : null,
+        score: [match.score1 ?? null, match.score2 ?? null],
+      };
+    }),
+  }));
+}
 
 export default function TournamentManagePage() {
   const { id } = useParams<{ id: string }>()
@@ -113,23 +152,41 @@ export default function TournamentManagePage() {
   const handleGenerateBracket = async () => {
     try {
       setGeneratingBracket(true)
+      setError('')
       
-      // Import and use the bracket generator
-      const { BracketGenerator } = await import('../../../lib/bracket-generator')
+      // Validate tournament status
+      if (tournament?.status !== 'open') {
+        throw new Error('Tournament must be open to generate brackets')
+      }
+      
+      // Check if brackets already exist
+      if (matches.length > 0) {
+        throw new Error('Brackets already exist for this tournament')
+      }
+      
       const acceptedParticipants = participants.filter(p => p.status === 'accepted')
       
       if (acceptedParticipants.length < 2) {
         throw new Error('Need at least 2 accepted participants to generate bracket')
       }
       
-      const matches = BracketGenerator.generateSingleElimination(id!, acceptedParticipants)
+      // Import and use the bracket generator
+      const { BracketGenerator } = await import('../../../lib/bracket-generator')
+      const generatedMatches = BracketGenerator.generateSingleElimination(id!, acceptedParticipants)
+      
+      if (!generatedMatches || generatedMatches.length === 0) {
+        throw new Error('Failed to generate bracket matches')
+      }
       
       // Insert matches into database
       const { error: matchesError } = await supabase
         .from('matches')
-        .insert(matches)
+        .insert(generatedMatches)
       
-      if (matchesError) throw matchesError
+      if (matchesError) {
+        console.error('Database error inserting matches:', matchesError)
+        throw new Error('Failed to save bracket to database')
+      }
       
       // Update tournament status to in_progress
       const { error: tournamentError } = await supabase
@@ -137,11 +194,15 @@ export default function TournamentManagePage() {
         .update({ status: 'in_progress' })
         .eq('id', id)
       
-      if (tournamentError) throw tournamentError
+      if (tournamentError) {
+        console.error('Database error updating tournament:', tournamentError)
+        throw new Error('Failed to update tournament status')
+      }
       
       // Refresh data
       await fetchTournamentData()
     } catch (err) {
+      console.error('Bracket generation error:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate bracket')
     } finally {
       setGeneratingBracket(false)
@@ -579,12 +640,8 @@ export default function TournamentManagePage() {
           <CardContent>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Tournament Bracket</h2>
             <BracketView
-              matches={matches}
-              participants={participants}
-              onMatchClick={(match) => {
-                setSelectedMatch(match)
-                setShowMatchModal(true)
-              }}
+              rounds={convertMatchesToRounds(matches, participants)}
+              currentUserId={user?.id}
             />
           </CardContent>
         </Card>

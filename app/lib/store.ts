@@ -282,22 +282,48 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
         .eq('tournament_id', tournamentId)
         .eq('status', 'accepted')
       
-      if (participantsError) throw participantsError
+      if (participantsError) {
+        console.error('Error fetching participants:', participantsError)
+        throw new Error('Failed to fetch tournament participants')
+      }
       
       if (!participants || participants.length < 2) {
         throw new Error('Need at least 2 accepted participants to generate bracket')
       }
       
+      // Check if brackets already exist
+      const { data: existingMatches, error: matchesCheckError } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('tournament_id', tournamentId)
+        .limit(1)
+      
+      if (matchesCheckError) {
+        console.error('Error checking existing matches:', matchesCheckError)
+        throw new Error('Failed to check existing brackets')
+      }
+      
+      if (existingMatches && existingMatches.length > 0) {
+        throw new Error('Brackets already exist for this tournament')
+      }
+      
       // Import and use the bracket generator
       const { BracketGenerator } = await import('./bracket-generator')
-      const matches = BracketGenerator.generateSingleElimination(tournamentId, participants)
+      const generatedMatches = BracketGenerator.generateSingleElimination(tournamentId, participants)
+      
+      if (!generatedMatches || generatedMatches.length === 0) {
+        throw new Error('Failed to generate bracket matches')
+      }
       
       // Insert matches into database
       const { error: matchesError } = await supabase
         .from('matches')
-        .insert(matches)
+        .insert(generatedMatches)
       
-      if (matchesError) throw matchesError
+      if (matchesError) {
+        console.error('Error inserting matches:', matchesError)
+        throw new Error('Failed to save bracket to database')
+      }
       
       // Update tournament status to in_progress
       const { error: tournamentError } = await supabase
@@ -305,7 +331,10 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
         .update({ status: 'in_progress' })
         .eq('id', tournamentId)
       
-      if (tournamentError) throw tournamentError
+      if (tournamentError) {
+        console.error('Error updating tournament status:', tournamentError)
+        throw new Error('Failed to update tournament status')
+      }
       
       console.log('Bracket generated successfully for tournament:', tournamentId)
     } catch (error) {

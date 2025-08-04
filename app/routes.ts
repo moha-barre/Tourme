@@ -8,6 +8,9 @@ export default [
   route("tournaments/create", "routes/tournaments/create.tsx"),
   route("tournaments/my", "routes/tournaments/my.tsx"),
   route("tournaments/:id", "routes/tournaments/$id.tsx"),
+  route("tournaments/:id/matches", "routes/tournaments/$id/matches.tsx"),
   route("tournaments/manage/:id", "routes/tournaments/manage/$id.tsx"),
   route("tournaments/edit/:id", "routes/tournaments/edit/$id.tsx"),
+  route('brackets', 'routes/brackets/index.tsx'),
+  route('matches', 'routes/matches/index.tsx'),
 ] satisfies RouteConfig;
