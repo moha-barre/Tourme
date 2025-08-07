@@ -1,6 +1,7 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "vite",
+  "outputDirectory": "build/client",
   "rewrites": [
     {
       "source": "/(.*)",
