@@ -1,7 +1,6 @@
 import type { Database } from './supabase'
 
 type Participant = Database['public']['Tables']['participants']['Row']
-type Match = Database['public']['Tables']['matches']['Insert']
 
 export interface BracketMatch {
   id?: string
@@ -14,6 +13,8 @@ export interface BracketMatch {
   status: 'pending' | 'in_progress' | 'completed'
   score1?: number
   score2?: number
+  source_match1_number?: number // previous match feeding player1
+  source_match2_number?: number // previous match feeding player2
 }
 
 export interface BracketRound {
@@ -21,224 +22,205 @@ export interface BracketRound {
   matches: BracketMatch[]
 }
 
+function isPowerOfTwo(n: number): boolean {
+  return n > 0 && (n & (n - 1)) === 0
+}
+
 export class BracketGenerator {
   /**
-   * Generate a single elimination bracket for a tournament
-   * Uses proper seeding to ensure top players don't meet early
+   * Generate a single elimination bracket for a tournament.
+   * Only supports power-of-two participant counts (no BYEs).
+   * All first round matches have two real players.
+   * Future rounds are placeholders with source match references.
    */
   static generateSingleElimination(
     tournamentId: string,
     participants: Participant[]
   ): BracketMatch[] {
-    if (participants.length < 2) {
-      throw new Error('Need at least 2 participants for a tournament')
-    }
-
     // Filter only accepted participants
     const acceptedParticipants = participants.filter(p => p.status === 'accepted')
-    
-    if (acceptedParticipants.length < 2) {
+    const numParticipants = acceptedParticipants.length
+
+    if (numParticipants < 2) {
       throw new Error('Need at least 2 accepted participants for a tournament')
+    }
+    if (!isPowerOfTwo(numParticipants)) {
+      throw new Error('Number of accepted participants must be a power of two (2, 4, 8, 16, ...)')
     }
 
     // Calculate number of rounds needed
-    const numParticipants = acceptedParticipants.length
-    const numRounds = Math.ceil(Math.log2(numParticipants))
-    const totalSlots = Math.pow(2, numRounds)
-    
-    // Create proper seeded bracket positions
-    const seededPositions = this.generateProperSeededPositions(totalSlots)
-    
-    // Assign participants to positions (fill with byes if needed)
-    const bracketPositions = this.assignParticipantsToPositions(
+    const numRounds = Math.log2(numParticipants)
+
+    // Standard seeding: 1 vs N, 2 vs N-1, etc.
+    const seededIndices = BracketGenerator.standardBracketSeeding(numParticipants)
+    const bracketPositions = BracketGenerator.assignParticipantsToPositions(
       acceptedParticipants,
-      seededPositions,
-      totalSlots
+      seededIndices,
+      numParticipants
     )
-    
-    // Generate matches for each round
-    const matches: BracketMatch[] = []
+
+    // Generate matches
     let matchNumber = 1
-    
-    for (let round = 1; round <= numRounds; round++) {
-      const matchesInRound = Math.pow(2, numRounds - round)
-      
-      for (let i = 0; i < matchesInRound; i++) {
-        const position1 = i * 2
-        const position2 = i * 2 + 1
-        
-        const player1 = bracketPositions[position1]
-        const player2 = bracketPositions[position2]
-        
-        // Skip matches where both players are byes
-        if (player1 === 'BYE' && player2 === 'BYE') {
-          continue
-        }
-        
+    const matches: BracketMatch[] = []
+    const matchRefsByRound: number[][] = []
+
+    // --- First round: assign players ---
+    const firstRoundMatches: BracketMatch[] = []
+    const firstRoundMatchRefs: number[] = []
+    for (let i = 0; i < numParticipants; i += 2) {
+      const player1 = bracketPositions[i]
+      const player2 = bracketPositions[i + 1]
+
+      const match: BracketMatch = {
+        tournament_id: tournamentId,
+        round: 1,
+        match_number: matchNumber,
+        player1_id: player1,
+        player2_id: player2,
+        status: 'pending',
+      }
+      firstRoundMatches.push(match)
+      firstRoundMatchRefs.push(matchNumber)
+      matchNumber++
+    }
+    matches.push(...firstRoundMatches)
+    matchRefsByRound.push(firstRoundMatchRefs)
+
+    // --- Future rounds: create placeholders with source match references ---
+    let prevRoundMatchRefs = firstRoundMatchRefs
+    for (let round = 2; round <= numRounds; round++) {
+      const numMatches = prevRoundMatchRefs.length / 2
+      const roundMatches: BracketMatch[] = []
+      const roundMatchRefs: number[] = []
+      for (let i = 0; i < numMatches; i++) {
+        const source1 = prevRoundMatchRefs[i * 2]
+        const source2 = prevRoundMatchRefs[i * 2 + 1]
         const match: BracketMatch = {
           tournament_id: tournamentId,
           round,
           match_number: matchNumber,
-          player1_id: player1 === 'BYE' ? undefined : player1,
-          player2_id: player2 === 'BYE' ? undefined : player2,
           status: 'pending',
+          source_match1_number: source1,
+          source_match2_number: source2,
         }
-        
-        matches.push(match)
-        matchNumber++ // Only increment for actual matches
+        roundMatches.push(match)
+        roundMatchRefs.push(matchNumber)
+        matchNumber++
       }
+      matches.push(...roundMatches)
+      matchRefsByRound.push(roundMatchRefs)
+      prevRoundMatchRefs = roundMatchRefs
     }
-    
+
     return matches
   }
-  
+
   /**
-   * Generate proper seeded positions for a bracket
-   * Uses standard tournament seeding (1 vs 16, 8 vs 9, 4 vs 13, etc.)
+   * Standard bracket seeding: returns an array of indices for bracket slots.
+   * E.g. for 8 slots: [0,7,3,4,2,5,1,6] (1 vs 8, 4 vs 5, 3 vs 6, 2 vs 7)
    */
-  private static generateProperSeededPositions(totalSlots: number): number[] {
-    const positions: number[] = []
-    
-    // For each seed, calculate its position using proper tournament seeding
-    for (let seed = 0; seed < totalSlots; seed++) {
-      const position = this.calculateSeededPosition(seed, totalSlots)
-      positions.push(position)
-    }
-    
-    return positions
-  }
-  
-  /**
-   * Calculate the correct position for a given seed using proper tournament seeding
-   */
-  private static calculateSeededPosition(seed: number, totalSlots: number): number {
-    if (seed === 0) return 0
-    if (seed === 1) return totalSlots - 1
-    
-    // For seeds 2 and above, use the standard tournament seeding pattern
-    let position = seed
-    let currentSlot = totalSlots
-    
-    while (currentSlot > 2) {
-      currentSlot = currentSlot / 2
-      if (position > currentSlot) {
-        position = currentSlot * 2 - position + 1
+  private static standardBracketSeeding(totalSlots: number): number[] {
+    function seed(n: number): number[] {
+      if (n === 1) return [0]
+      const prev = seed(n / 2)
+      const result: number[] = []
+      for (let i = 0; i < prev.length; i++) {
+        result.push(prev[i])
+        result.push(n - 1 - prev[i])
       }
+      return result
     }
-    
-    return position - 1
+    return seed(totalSlots)
   }
-  
+
   /**
    * Assign participants to bracket positions based on seeding
    */
   private static assignParticipantsToPositions(
     participants: Participant[],
-    seededPositions: number[],
+    seededIndices: number[],
     totalSlots: number
-  ): (string | 'BYE')[] {
-    const positions = new Array(totalSlots).fill('BYE')
-    
+  ): string[] {
+    const positions = new Array(totalSlots)
     // Sort participants by creation date (first to join = higher seed)
     const sortedParticipants = [...participants].sort(
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     )
-    
     // Assign participants to their seeded positions
     sortedParticipants.forEach((participant, index) => {
-      if (index < seededPositions.length) {
-        const position = seededPositions[index]
+      if (index < seededIndices.length) {
+        const position = seededIndices[index]
         positions[position] = participant.id
       }
     })
-    
     return positions
-  }
-  
-  /**
-   * Get the next match for a winner
-   */
-  static getNextMatch(round: number, matchNumber: number, totalRounds: number): {
-    nextRound: number
-    nextMatchNumber: number
-  } | null {
-    if (round >= totalRounds) return null
-    
-    const nextRound = round + 1
-    const nextMatchNumber = Math.floor((matchNumber - 1) / 2) + 1
-    
-    return { nextRound, nextMatchNumber }
   }
 
   /**
-   * Advance a player to the next round after winning a match
+   * Advance a player to the next round after winning a match (DB version)
+   * This should be called after a match is completed.
    */
   static async advancePlayerToNextRound(
     tournamentId: string,
     winnerId: string,
-    currentRound: number,
     currentMatchNumber: number,
+    currentRound: number,
     supabase: any
   ): Promise<void> {
-    const nextMatch = this.getNextMatch(currentRound, currentMatchNumber, 10) // Assume max 10 rounds
-    
-    if (!nextMatch) {
-      // This is the final match, tournament is complete
-      return
-    }
-
-    // Find the next match
+    // Find the next match that references this match as a source
     const { data: nextMatchData, error: nextMatchError } = await supabase
       .from('matches')
       .select('*')
       .eq('tournament_id', tournamentId)
-      .eq('round', nextMatch.nextRound)
-      .eq('match_number', nextMatch.nextMatchNumber)
-      .single()
+      .eq('round', currentRound + 1)
+      .or(
+        `source_match1_number.eq.${currentMatchNumber},source_match2_number.eq.${currentMatchNumber}`
+      )
+      .maybeSingle()
 
     if (nextMatchError || !nextMatchData) {
-      console.error('Could not find next match:', nextMatchError)
+      // This was the final match, or next match not found
       return
     }
 
-    // Determine which player slot to fill (player1 or player2)
-    const isFirstPlayer = (currentMatchNumber - 1) % 2 === 0
-    
+    // Determine which slot to fill
     const updateData: any = {}
-    if (isFirstPlayer) {
+    if (nextMatchData.source_match1_number === currentMatchNumber && !nextMatchData.player1_id) {
       updateData.player1_id = winnerId
-    } else {
+    } else if (nextMatchData.source_match2_number === currentMatchNumber && !nextMatchData.player2_id) {
       updateData.player2_id = winnerId
     }
 
     // Update the next match with the winner
-    const { error: updateError } = await supabase
-      .from('matches')
-      .update(updateData)
-      .eq('id', nextMatchData.id)
-
-    if (updateError) {
-      console.error('Error advancing player to next round:', updateError)
+    if (Object.keys(updateData).length > 0) {
+      const { error: updateError } = await supabase
+        .from('matches')
+        .update(updateData)
+        .eq('id', nextMatchData.id)
+      if (updateError) {
+        console.error('Error advancing player to next round:', updateError)
+      }
     }
   }
-  
+
   /**
    * Check if a tournament is complete
    */
   static isTournamentComplete(matches: BracketMatch[]): boolean {
     if (matches.length === 0) return false
-    const finalMatches = matches.filter(m => m.round === Math.max(...matches.map(m => m.round)))
+    const finalRound = Math.max(...matches.map(m => m.round))
+    const finalMatches = matches.filter(m => m.round === finalRound)
     return finalMatches.every(m => m.status === 'completed')
   }
-  
+
   /**
    * Get the winner of a tournament
    */
   static getTournamentWinner(matches: BracketMatch[]): string | null {
     if (matches.length === 0) return null
-    const finalMatches = matches.filter(m => m.round === Math.max(...matches.map(m => m.round)))
+    const finalRound = Math.max(...matches.map(m => m.round))
+    const finalMatches = matches.filter(m => m.round === finalRound)
     const finalMatch = finalMatches[0]
-    
     return finalMatch?.winner_id || null
   }
-} 
+}

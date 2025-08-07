@@ -4,6 +4,9 @@ import { useAuthStore, useTournamentStore } from '../lib/store'
 import { Trophy, Users, Calendar, ArrowRight } from 'lucide-react'
 import { formatDate, getStatusColor } from '../lib/utils'
 import { testDatabaseConnection, checkTables } from '../lib/db-test'
+import FeatureCard from '../components/FeatureCard'
+import Step from '../components/Step'
+import { FilePlus, Users2, LayoutGrid } from 'lucide-react'
 
 // Meta tags for the home page
 export const meta = () => [
